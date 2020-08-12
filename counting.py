@@ -18,9 +18,11 @@ async def handle_message(message):
         current_num = dbh.database.db['guilds'][message.guild.id]['counting']['current-num']
         if num != current_num + 1:
             await message.add_reaction('❌')
+            await message.channel.send("Wrong Number!")
             return False
         if last_user == message.author.id:
             await message.add_reaction('❌')
+            await message.channel.send("You can't count twice in a row!")
             return False
         dbh.database.db['guilds'][message.guild.id]['counting']['current-num'] += 1
         dbh.database.db['guilds'][message.guild.id]['counting']['last-counter'] = message.author.id
@@ -53,9 +55,9 @@ class Counting(Cog):
         await ctx.send(f"Set counting channel to {channel.mention}")
 
     @commands.command(
-        name='current', aliases=['num', 'number']
+        name='next', aliases=['num', 'number', 'current']
     )
     @commands.guild_only()
     async def get_current_number(self, ctx):
         current = dbh.database.db['guilds'][ctx.guild.id]['counting']['current-num']
-        await ctx.send(f"The current number is **{current}**")
+        await ctx.send(f"The next number is **{current+1}**")
