@@ -3,10 +3,10 @@ import discord
 import db_handler as dbh
 
 
-async def play_game(p1, p2, bot):
+async def play_game(p1, p2, bot, ctx):
     winner = None
     plist = [p1, p2]
-    lives = [[3], [3]]
+    lives = [3, 3]
 
     R = '1'
     P = '2'
@@ -45,9 +45,16 @@ async def play_game(p1, p2, bot):
             await p.send("Please choose an option: (1) Rock, (2) Paper, (3) Scissors.")
             check = Check(p)
             msg = await bot.wait_for('message', check=check.check)
-            choice_list.append(msg)
+            choice_list.append(msg.content)
         this_game_winner = determine_winner(choice_list)
-        return this_game_winner
+        if this_game_winner is None:
+            await ctx.send(f"They tied this match")
+            continue
+        lives[this_game_winner-1] -= 1
+        await ctx.send(f"{plist[this_game_winner-1].mention} lost a life!")
+        if lives[this_game_winner-1] == 0:
+            await ctx.send(f"{plist[this_game_winner].mention} wins!")
+            return
 
 
 class RockPaperScissors(commands.Cog):
@@ -63,9 +70,9 @@ class RockPaperScissors(commands.Cog):
         if target.bot:
             await ctx.send("You can't challenge a bot")
             return
-        #if target.id == ctx.message.author.id:
-        #    await ctx.send("You can't play yourself")
-        #    return
+        if target.id == ctx.message.author.id:
+            await ctx.send("You can't play yourself")
+            return
         await ctx.send(f"{target.mention}, {ctx.message.author.mention} is challenging you to a game of rock-paper-scissors!\
             \nType \"accept\" to accept, or \"decline\" to decline.")
         def check(message):
@@ -79,8 +86,4 @@ class RockPaperScissors(commands.Cog):
             await ctx.send("Cancelled")
             return
         await ctx.send("Game started!")
-        winner = await play_game(ctx.message.author, target, self.bot)
-        if winner == 0:
-            await ctx.send(f"{ctx.message.author.mention} Wins!")
-            return
-        await ctx.send(f"{target.mention} Wins!")
+        await play_game(ctx.message.author, target, self.bot, ctx)
