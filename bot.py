@@ -1,13 +1,21 @@
 from discord.ext.commands import Bot
-from secrets import TOKEN, INVITE
+from secrets import BETA_TOKEN, TOKEN, INVITE
 from asyncio import sleep
 import db_handler as dbh
+import sys
 # Bot Functions:
 import counting
+import rps
 
-bot = Bot('mg ')
+if len(sys.argv) > 1 and sys.argv[1] == 'beta':
+    bot = Bot('beta ')
+    token = BETA_TOKEN
+else:
+    bot = Bot('mg ')
+    token = TOKEN
 database = None
 running = True
+
 
 async def loop_save():
     while database is None:
@@ -15,7 +23,6 @@ async def loop_save():
     while running:
         await sleep(60)
         dbh.database.db.save_database()
-
 
 
 @bot.event
@@ -43,7 +50,8 @@ async def on_message(message):
 if __name__ == '__main__':
     try:
         bot.add_cog(counting.Counting(bot))
-        bot.run(TOKEN)
+        bot.add_cog(rps.RockPaperScissors(bot))
+        bot.run(token)
     finally:
         running = False
         dbh.database.save_database()
