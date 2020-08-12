@@ -3,7 +3,7 @@ import discord
 import db_handler as dbh
 
 
-async def play_game(p1, p2, bot, ctx):
+async def play_game(p1, p2, bot):
     winner = None
     plist = [p1, p2]
     lives = [[3], [3]]
