@@ -80,7 +80,10 @@ class Game:
                 msg = ''
                 for x, _ in enumerate(pchoices):
                     p = self.players[x]
-                    msg += f"{p.obj.mention} chose {choices[p.choice]}\n"
+                    if p.choice is None:
+                        msg += f"{p.obj.mention} didn't choose anything, so they loose a point."
+                    else:
+                        msg += f"{p.obj.mention} chose {choices[p.choice]}\n"
             elif winner_num is None:
                 msg = f"Both {self.players[0].obj.mention} and {self.players[1].obj.mention} chose {choices[self.players[0].choice]}"
             else:
