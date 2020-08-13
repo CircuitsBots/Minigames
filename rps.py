@@ -66,8 +66,8 @@ class Game:
             return 0
 
     async def play(self):
-        winner = False
-        while not winner:
+        game_over = False
+        while not game_over:
             tasks = []
             for p in self.players:
                 t = asyncio.create_task(p.get_choice())
@@ -95,7 +95,7 @@ class Game:
                 if p.lives == 0:
                     winner = self.players[x-1]
                     msg = f"{winner.obj.mention} completely destroyed {p.obj.mention}!"
-                    winner = True
+                    game_over = True
 
             await self.ctx.send(f"{msg}\n\
                 {self.players[0].obj}: {self.players[0].lives} Lives \n\
