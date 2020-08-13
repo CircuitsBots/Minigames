@@ -29,7 +29,7 @@ class Player:
                 return False
             return True
         try:
-            msg = await self.bot.wait_for('message', check=check, timeout=30)
+            msg = await self.bot.wait_for('message', check=check, timeout=60)
         except asyncio.TimeoutError:
             self.choice = None
             description=f"You didn't choose anything, so you lose a life."
@@ -130,7 +130,7 @@ class RockPaperScissors(commands.Cog):
                 return False
             return True
         try:
-            msg = await self.bot.wait_for('message', check=check, timeout=30)
+            msg = await self.bot.wait_for('message', check=check, timeout=120)
         except asyncio.TimeoutError:
             await ctx.send(f"{ctx.message.author.mention}, the challenge timed out!")
             return
