@@ -95,7 +95,7 @@ class Game:
             for x, p in enumerate(self.players):
                 if p.lives == 0:
                     winner = self.players[x-1]
-                    msg = f"{winner.obj.mention} completely destroyed {p.obj.mention}!"
+                    msg += f"\n{winner.obj.mention} completely destroyed {p.obj.mention}!"
                     game_over = True
 
             embed = discord.Embed(title='Rock Paper Scissors', color=discord.Color.red(), description=msg)
