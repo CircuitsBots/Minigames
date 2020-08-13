@@ -42,8 +42,9 @@ async def on_guild_join(guild):
 
 @bot.event
 async def on_message(message):
-    if message.channel.id == dbh.database.db['guilds'][message.guild.id]['counting']['channel']:
-        await counting.handle_message(message)
+    if message.guild is not None:
+        if message.channel.id == dbh.database.db['guilds'][message.guild.id]['counting']['channel']:
+            await counting.handle_message(message)
     await bot.process_commands(message)
 
 

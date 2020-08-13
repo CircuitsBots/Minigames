@@ -1,60 +1,102 @@
 from discord.ext import commands
 import discord
+import asyncio
 import db_handler as dbh
+from threading import Thread
+from _thread import start_new_thread
+
+choices = {
+    '1': 'Rock',
+    '2': 'Paper',
+    '3': 'Scissors',
+    None: '...nothing?'
+}
 
 
-async def play_game(p1, p2, bot, ctx):
-    winner = None
-    plist = [p1, p2]
-    lives = [3, 3]
+class Player:
+    def __init__(self, obj, bot):
+        self.obj = obj
+        self.bot = bot
+        self.lives = 3
+        self.choice = None
 
-    R = '1'
-    P = '2'
-    S = '3'
-
-    def determine_winner(players):
-        c1, c2 = players
-        if c1 == c2:
-            return None
-        if c1 == R:
-            if c2 == P:
-                return 1
-            return 0
-        if c1 == P:
-            if c2 == S:
-                return 1
-            return 0
-        if c1 == S:
-            if c2 == R:
-                return 1
-            return 0
-
-    class Check:
-        def __init__(self, user):
-            def check(msg):
-                if msg.author.id != user.id:
-                    return False
-                if msg.content not in [R, P, S]:
-                    return False
-                return True
-            self.check = check
-
-    while True:
-        choice_list = []
-        for x, p in enumerate(plist):
-            await p.send("Please choose an option: (1) Rock, (2) Paper, (3) Scissors.")
-            check = Check(p)
-            msg = await bot.wait_for('message', check=check.check)
-            choice_list.append(msg.content)
-        this_game_winner = determine_winner(choice_list)
-        if this_game_winner is None:
-            await ctx.send(f"They tied this match")
-            continue
-        lives[this_game_winner-1] -= 1
-        await ctx.send(f"{plist[this_game_winner-1].mention} lost a life!")
-        if lives[this_game_winner-1] == 0:
-            await ctx.send(f"{plist[this_game_winner].mention} wins!")
+    async def get_choice(self):
+        await self.obj.send(f"Please choose an option: (1): Rock, (2): Paper, or (3): Scissors")
+        def check(msg):
+            if msg.author.id != self.obj.id:
+                return False
+            if msg.content.lower() not in ['1', '2', '3']:
+                return False
+            return True
+        try:
+            msg = await self.bot.wait_for('message', check=check, timeout=5)
+        except asyncio.TimeoutError:
+            self.choice = None
+            await self.obj.send(f"You did choose anything, so you lose a life.")
+            self.lives -= 1
             return
+        choice = msg.content
+        self.choice = choice
+
+
+class Game:
+    def __init__(self, ctx, bot, players):
+        self.ctx = ctx
+        self.bot = bot
+        self.players = [Player(p, bot) for p in players]
+
+    async def determine_winner(self, choices):
+        if choices[0] == choices[1]:
+            return None
+        if choices[0] is None:
+            return 1
+        if choices[1] is None:
+            return 0
+        if choices[0] == '1':
+            if choices[1] == '2':
+                return 1
+            return 0
+        if choices[0] == '2':
+            if choices[1] == '3':
+                return 1
+            return 0
+        if choices[0] == '3':
+            if choices[1] == '1':
+                return 1
+            return 0
+
+    async def play(self):
+        winner = False
+        while not winner:
+            tasks = []
+            for p in self.players:
+                t = asyncio.create_task(p.get_choice())
+                tasks.append(t)
+            for t in tasks:
+                await t
+            pchoices = [p.choice for p in self.players]
+            winner_num = await self.determine_winner(pchoices)
+            if None in pchoices:
+                msg = ''
+                for x, _ in enumerate(pchoices):
+                    p = self.players[x]
+                    msg += f"{p.obj.mention} didn't choose anything, so they lose a life.\n"
+            elif winner_num is None:
+                msg = f"Both {self.players[0].obj.mention} and {self.players[1].obj.mention} chose {choices[self.players[0].choice]}"
+            else:
+                winner = self.players[winner_num]
+                loser = self.players[winner_num-1]
+                loser.lives -= 1
+                msg = f"{winner.obj.mention} chose {choices[winner.choice]} and beat {loser.obj.mention} who chose {choices[loser.choice]}."
+            for x, p in enumerate(self.players):
+                if p.lives == 0:
+                    winner = self.players[x-1]
+                    msg = f"{winner.obj.mention} completely destroyed {p.obj.mention}!"
+                    winner = True
+
+            await self.ctx.send(f"{msg}\n\
+                {self.players[0].obj}: {self.players[0].lives} Lives \n\
+                {self.players[1].obj}: {self.players[1].lives} Lives")
 
 
 class RockPaperScissors(commands.Cog):
@@ -70,9 +112,9 @@ class RockPaperScissors(commands.Cog):
         if target.bot:
             await ctx.send("You can't challenge a bot")
             return
-        if target.id == ctx.message.author.id:
-            await ctx.send("You can't play yourself")
-            return
+        #if target.id == ctx.message.author.id:
+        #    await ctx.send("You can't play yourself")
+        #    return
         await ctx.send(f"{target.mention}, {ctx.message.author.mention} is challenging you to a game of rock-paper-scissors!\
             \nType \"accept\" to accept, or \"decline\" to decline.")
         def check(message):
@@ -81,9 +123,14 @@ class RockPaperScissors(commands.Cog):
             if message.content.lower() not in ['accept', 'yes', 'deny', 'no', 'decline']:
                 return False
             return True
-        msg = await self.bot.wait_for('message', check=check)
+        try:
+            msg = await self.bot.wait_for('message', check=check, timeout=30)
+        except asyncio.TimeoutError:
+            await ctx.send(f"{ctx.message.author.mention}, the challenge timed out!")
+            return
         if msg.content.lower() in ['deny', 'no', 'decline']:
             await ctx.send("Cancelled")
             return
         await ctx.send("Game started!")
-        await play_game(ctx.message.author, target, self.bot, ctx)
+        game = Game(ctx, self.bot, [ctx.message.author, target])
+        await game.play()
