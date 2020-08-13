@@ -102,7 +102,7 @@ class Game:
             embed.add_field(name='Lives', value=f"{self.players[0].obj}: {self.players[0].lives} Lives \n{self.players[1].obj}: {self.players[1].lives} Lives")
             await self.ctx.send(embed=embed)
             for p in self.players:
-                await p.obg.send(embed=embed)
+                await p.obj.send(embed=embed)
 
 
 class RockPaperScissors(commands.Cog):
