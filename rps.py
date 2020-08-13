@@ -32,7 +32,8 @@ class Player:
             msg = await self.bot.wait_for('message', check=check, timeout=30)
         except asyncio.TimeoutError:
             self.choice = None
-            await self.obj.send(f"You did choose anything, so you lose a life.")
+            description=f"You didn't choose anything, so you lose a life."
+            await self.obj.send(description)
             self.lives -= 1
             return
         choice = msg.content
@@ -81,7 +82,7 @@ class Game:
                 for x, _ in enumerate(pchoices):
                     p = self.players[x]
                     if p.choice is None:
-                        msg += f"{p.obj.mention} didn't choose anything, so they loose a point."
+                        msg += f"{p.obj.mention} didn't choose anything, so they loose a point.\n"
                     else:
                         msg += f"{p.obj.mention} chose {choices[p.choice]}\n"
             elif winner_num is None:
@@ -97,9 +98,9 @@ class Game:
                     msg = f"{winner.obj.mention} completely destroyed {p.obj.mention}!"
                     game_over = True
 
-            await self.ctx.send(f"{msg}\n\
-                {self.players[0].obj}: {self.players[0].lives} Lives \n\
-                {self.players[1].obj}: {self.players[1].lives} Lives")
+            embed = discord.Embed(title='Rock Paper Scissors', color=discord.Color.red(), description=msg)
+            embed.add_field(name='Lives', value=f"{self.players[0].obj}: {self.players[0].lives} Lives \n{self.players[1].obj}: {self.players[1].lives} Lives")
+            await self.ctx.send(embed=embed)
 
 
 class RockPaperScissors(commands.Cog):
