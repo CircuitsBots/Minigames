@@ -170,7 +170,7 @@ class Hangman(commands.Cog):
     @commands.command(name='hm')
     @commands.guild_only()
     async def start_hangman(self, ctx):
-        game_msg = await ctx.channel.send(f"{ctx.message.author} has opened a game! React below to join. {ctx.message.author.mention}, the game will start when you type \"start game\"")
+        game_msg = await ctx.channel.send(f"{ctx.message.author} has opened a game of hangman! React below to join. {ctx.message.author.mention}, the game will start when you type \"start game\"")
         await game_msg.add_reaction('✅')
         
         async def wait_for_game_start():
