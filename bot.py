@@ -6,6 +6,7 @@ import sys
 # Bot Functions:
 import counting
 import rps
+import hangman
 
 if len(sys.argv) > 1 and sys.argv[1] == 'beta':
     bot = Bot('beta ')
@@ -52,6 +53,7 @@ if __name__ == '__main__':
     try:
         bot.add_cog(counting.Counting(bot))
         bot.add_cog(rps.RockPaperScissors(bot))
+        bot.add_cog(hangman.Hangman(bot))
         bot.run(token)
     finally:
         running = False
