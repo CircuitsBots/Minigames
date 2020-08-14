@@ -177,11 +177,14 @@ class Hangman(commands.Cog):
             def check(msg):
                 if msg.author.id != ctx.message.author.id:
                     return False
-                if msg.content.lower() != "start game":
+                if msg.content.lower() not in ["start game", "cancel"]:
                     return False
                 return True
 
             msg = await self.bot.wait_for('message', check=check)
+            if msg.content.lower() == 'cancel':
+                await ctx.send("cancelling")
+                return
             users = set()
             update_msg = await ctx.channel.fetch_message(game_msg.id)
             for reaction in update_msg.reactions:
