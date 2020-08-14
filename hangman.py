@@ -54,13 +54,14 @@ class Game():
         self.guessers = []
         self.channel = channel
         self.hanger = Hanger()
+        self.going = True
 
     async def play(self):
         await self._initialize()
         await self._send_to_all(self.guessers + [self.phraser], "The game has started!")
-        await self.channel.send("The game has started!")
-        game_playing = True
-        while game_playing:
+        if self.going:
+            await self.channel.send("The game has started!")
+        while self.going:
             await self.channel.send(await self.show_board())
             round_guesser = random.choice(self.guessers)
             await self.get_guess(round_guesser)
@@ -98,6 +99,8 @@ class Game():
                 return False
             if msg.content not in ['1', '2', '3']:
                 return False
+            if msg.channel.id != self.channel.id:
+                return False
             return True
         #await member.send("It's your turn to choose! Do you want to (1) guess a letter, (2) guess a word, or (3) guess the phrase? (right now only 1 works)")
         #choice = await self.bot.wait_for('message', check=check, timeout=180)
@@ -113,8 +116,19 @@ class Game():
                 return False
             if msg.content.lower() not in list(string.ascii_letters):
                 return False
+            if msg.channel.id != self.channel.id:
+                return False
             return True
-        msg = await self.bot.wait_for('message', check=check, timeout=180)
+        try:
+            msg = await self.bot.wait_for('message', check=check, timeout=60)
+        except asyncio.TimeoutError:
+            await self.channel.send(f"Due to lack of response, {member.mention} has been removed from the game.")
+            self.guessers.remove(member)
+            if len(self.guessers) < 1:
+                await self.channel.send(f"There are no more guessers, so the game ends, and the phraser, {self.phraser.mention}, wins!")
+                self.going = False
+                return
+
         guess = msg.content.lower()
         if guess in self.guessed_chars:
             await self.channel.send("That letter has already been guessed.")
@@ -142,8 +156,16 @@ class Game():
         def check(msg):
             if msg.author.id != self.phraser.id:
                 return False
+            if msg.guild is not None:
+                return False
             return True
-        msg = await self.bot.wait_for('message', check=check, timeout=600)
+        try:
+            msg = await self.bot.wait_for('message', check=check, timeout=120)
+        except asyncio.TimeoutError:
+            await self.phraser.send("You didn't choose a phrase, so the game ended.")
+            await self.channel.send("The phraser didn't choose a phrase, so the game ended.")
+            self.going = False
+            return
         phrase = msg.content.lower()
         if len(phrase) > 32:
             await self.phraser.send(f"That phrase is too long! {len(phrase)} > 32")
@@ -157,6 +179,7 @@ class Game():
                 self.guessed_phrase += char
             else:
                 self.guessed_phrase += '-'
+        return True
 
     async def _send_to_all(self, mlist, msg):
         for m in mlist:
@@ -179,12 +202,17 @@ class Hangman(commands.Cog):
                     return False
                 if msg.content.lower() not in ["start game", "cancel"]:
                     return False
+                if msg.channel.id != ctx.channel.id:
+                    return False
                 return True
 
-            msg = await self.bot.wait_for('message', check=check)
+            try:
+                msg = await self.bot.wait_for('message', check=check, timeout=600)
+            except asyncio.TimeoutError:
+                await ctx.send("Game timed out")
             if msg.content.lower() == 'cancel':
-                await ctx.send("cancelling")
-                return
+                await ctx.send("Game Cancelled")
+                return []
             users = set()
             update_msg = await ctx.channel.fetch_message(game_msg.id)
             for reaction in update_msg.reactions:
@@ -199,6 +227,8 @@ class Hangman(commands.Cog):
             return users
 
         users = await wait_for_game_start()
+        if users == []:
+            return
         members = []
         for user_id in users:
             member = ctx.guild.get_member(user_id)
