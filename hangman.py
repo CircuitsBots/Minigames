@@ -7,9 +7,9 @@ BOARD = \
 _______
 |     |
 |     {}
-|    {}
+|   {}{}{}
 |     {}
-|    {}
+|    {}{}
 |______\
 ```
 """
@@ -17,20 +17,26 @@ _______
 
 class Hanger():
     def __init__(self):
-        self.lives = 4
+        self.lives = 7
         self.current_part = 1
         self.board = BOARD
         self.parts = {
             1: 'o',
-            2: '/|\\',
+            2: '/',
             3: '|',
-            4: '/ \\'
+            4: '\\',
+            5: '|',
+            6: '/',
+            7: '\\'
         }
         self.current_parts = {
-            1: '',
-            2: '',
-            3: '',
-            4: '',
+            1: ' ',
+            2: ' ',
+            3: ' ',
+            4: ' ',
+            5: ' ',
+            6: ' ',
+            7: ' '
         }
 
     async def get_board(self):
