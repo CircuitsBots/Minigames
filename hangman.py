@@ -7,9 +7,9 @@ BOARD = \
 _______
 |     |
 |     {}
-|   {}{}{}
+|    {}{}{}
 |     {}
-|    {}{}
+|     {}{}
 |______\
 ```
 """
@@ -41,7 +41,7 @@ class Hanger():
 
     async def get_board(self):
         cp = self.current_parts
-        return self.board.format(cp[1], cp[2], cp[3], cp[4])
+        return self.board.format(cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7])
 
     async def add_part(self):
         self.lives -= 1
