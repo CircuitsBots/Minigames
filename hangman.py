@@ -64,7 +64,7 @@ class Game():
         last_choice = -1
         while self.going:
             last_choice += 1
-            if last_choice > len(self.guessers):
+            if last_choice > len(self.guessers)-1:
                 last_choice = 0
             await self.channel.send(await self.show_board())
             round_guesser = self.guessers[last_choice]
@@ -133,7 +133,7 @@ class Game():
             msg = await self.bot.wait_for('message', check=check, timeout=180)
             if len(msg.content) != len(self.phrase):
                 await self.channel.send("That's not the same length as the actual phrase. Make sure to include special chars like '.")
-                return self._guess_phrase(member)
+                return await self.get_phrase(member)
         except asyncio.TimeoutError:
             await self.channel.send("You will be skipped this round because you didn't respond")
             return
