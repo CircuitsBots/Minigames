@@ -58,12 +58,16 @@ class Game():
 
     async def play(self):
         await self._initialize()
-        await self._send_to_all(self.guessers + [self.phraser], "The game has started!")
         if self.going:
+            await self._send_to_all(self.guessers + [self.phraser], "The game has started!")
             await self.channel.send("The game has started!")
+        last_choice = -1
         while self.going:
+            last_choice += 1
+            if last_choice > len(self.guessers):
+                last_choice = 0
             await self.channel.send(await self.show_board())
-            round_guesser = random.choice(self.guessers)
+            round_guesser = self.guessers[last_choice]
             await self.get_guess(round_guesser)
 
             if self.hanger.lives == 0:
