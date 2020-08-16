@@ -139,7 +139,7 @@ class Game():
             msg = await self.bot.wait_for('message', check=check, timeout=180)
             if len(msg.content) != len(self.phrase):
                 await self.channel.send("That's not the same length as the actual phrase. Make sure to include special chars like '.")
-                return await self.get_phrase(member)
+                return await self.get_guess(member)
         except asyncio.TimeoutError:
             await self.channel.send("You will be skipped this round because you didn't respond")
             return
@@ -172,7 +172,7 @@ class Game():
         guess = msg.content.lower()
         if guess in self.guessed_chars:
             await self.channel.send("That letter has already been guessed.")
-            return await self._guess_letter(member)
+            return await self.get_guess(member)
         self.guessed_chars.append(guess)
         if guess in self.phrase:
             for x, char in enumerate(self.phrase):
