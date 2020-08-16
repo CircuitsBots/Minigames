@@ -14,24 +14,23 @@ if len(sys.argv) > 1 and sys.argv[1] == 'beta':
 else:
     bot = Bot('mg ')
     token = TOKEN
-database = None
 running = True
 
 
 async def loop_save():
-    while database is None:
+    while dbh.database is None:
         await sleep(1)
     while running:
-        await sleep(60)
-        dbh.database.db.save_database()
+        await sleep(5)
+        dbh.database.save_database()
 
 
 @bot.event
 async def on_ready():
-    global database
     print(f"Logged in as {bot.user.name} in {len(bot.guilds)} guilds!")
-    dbh.set_database(bot)
-    bot.loop.create_task(loop_save())
+    if dbh.database is None:
+        dbh.set_database(bot)
+        await bot.loop.create_task(loop_save())
 
 
 @bot.event
