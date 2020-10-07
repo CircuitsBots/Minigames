@@ -33,3 +33,57 @@ class Fun(commands.Cog):
             url=ctx.message.author.avatar_url
         )
         await ctx.send(embed=embed)
+
+
+    @commands.command(
+        name='emojify', brief='Converts letters in a sentence to emojis',
+        description='Converts letters in a sentence to emojis'
+    )
+    async def emojify(self, ctx, *, sentence):
+        index = {
+            'a': '🇦',
+            'b': '🇧',
+            'c': '🇨',
+            'd': '🇩',
+            'e': '🇪',
+            'f': '🇫',
+            'g': '🇬',
+            'h': '🇭',
+            'i': '🇮',
+            'j': '🇯',
+            'k': '🇰',
+            'l': '🇱',
+            'm': '🇲',
+            'n': '🇳',
+            'o': '🇴',
+            'p': '🇵',
+            'q': '🇶',
+            'r': '🇷',
+            's': '🇸',
+            't': '🇹',
+            'u': '🇺',
+            'v': '🇻',
+            'w': '🇼',
+            'x': '🇽',
+            'y': '🇾',
+            'z': '🇿',
+            '0': ':zero:',
+            '1': ':one:',
+            '2': ':two:',
+            '3': ':three:',
+            '4': ':four:',
+            '5': ':five:',
+            '6': ':six:',
+            '7': ':seven:',
+            '8': ':eight:',
+            '9': ':nine:',
+        }
+        sentence = sentence.lower()
+        new_sentence = ''
+        for char in sentence:
+            if char in index:
+                new_sentence += index[char]
+            else:
+                new_sentence += char
+            new_sentence += ' '
+        await ctx.send(new_sentence)
