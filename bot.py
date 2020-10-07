@@ -3,10 +3,12 @@ from secrets import BETA_TOKEN, TOKEN, INVITE
 from asyncio import sleep
 import db_handler as dbh
 import sys
+
 # Bot Functions:
 import counting
 import rps
 import hangman
+import fun_cog
 
 if len(sys.argv) > 1 and sys.argv[1] == 'beta':
     bot = Bot('beta ')
@@ -53,6 +55,7 @@ if __name__ == '__main__':
         bot.add_cog(counting.Counting(bot))
         bot.add_cog(rps.RockPaperScissors(bot))
         bot.add_cog(hangman.Hangman(bot))
+        bot.add_cog(fun_cog.Fun(bot))
         bot.run(token)
     finally:
         running = False
